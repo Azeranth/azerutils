@@ -11,3 +11,10 @@ To obtain a MultiStreamAccessor, use MultiStream.GetAccessor(_key) to get a copy
 SpliceJsonHeader takes a bytes stream-like object which begins with a JSON object and returns a string representing the JSON object. SpliceJsonHeader will read forward into the supplied stream for the length of the JSON object.
 
 \_\_jsonExtractIterator\_\_ represents an iterator which expects a stream and iterates over stream counting the relative number of '{' and '}', stopping iteration when they are equal.
+
+## Delegate / Transform
+Delegate provides a wrapper for an invocation list of functions which can be called according to a specific signature, with a number of required and keyword arguments
+Delegate is more flexible than the native delegates library in that Delegate will accept any function which can be called by a particular signature rather than requiring that function to actually have a specific signature.
+
+Transform provides a wrapper for an invocation list which will forward the value returned by each invocation to the next in the list as the first _carry arguments
+It provides the same advantage in flexibility as Delegate over delegates.
