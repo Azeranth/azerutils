@@ -26,6 +26,7 @@ class __jsonExtractIterator__:
     def __next__(self):
         if not self.openBracketCount and not self.__firstIter__:
             raise StopIteration
+        self.__firstIter__ = False
         b = self.source.read(1)
         if b == b'{':
             self.openBracketCount += 1

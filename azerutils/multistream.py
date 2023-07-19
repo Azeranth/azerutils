@@ -6,7 +6,7 @@ class MultiStream:
     def __init__(self, _source):
         self.source = _source
         self.sourceBasePosition = self.source.tell()
-        self.seekDict = {MultiStream.__BASE_STREAM__ : self.sourceBasePosition}
+        self.seekDict = {MultiStream.__BASESTREAM__ : self.sourceBasePosition}
         
         self.accessLock = threading.Lock()
         self.baseStream = MultiStreamAccessor(self, MultiStream.__BASESTREAM__)

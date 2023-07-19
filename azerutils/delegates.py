@@ -5,49 +5,54 @@ class InvalidInvocationException(Exception):
           self.message = str(_invocation)
 
 class Delegate:
-    def __init__(self, _invocationList=[], _positionals=0, _names=[]):
-        self.invocationList = _invocationList if hasattr(_invocationList, "__iter__") else [_invocationList]
-        self.positionals = _positionals
-        self.names = _names
+     def __init__(self, _invocationList=[], _positionals=0, _names=[]):
+          self.invocationList = _invocationList if hasattr(_invocationList, "__iter__") else [_invocationList]
+          self.positionals = _positionals
+          self.names = _names
 
-        invalid = self.__validateInvocationList__()
-        if invalid:
-             raise InvalidInvocationException(invalid)
+          invalid = self.__validateInvocationList__()
+          if invalid:
+               raise InvalidInvocationException(invalid)
 
-    def __validateInvocationList__(self):
-        for invocation in self.invocationList:
-                parameters = inspect.signature(invocation).parameters.values()
-                if any([parameter.kind in (parameter.VAR_POSITIONAL, parameter.VAR_KEYWORD) for parameter in parameters ]):
-                     continue
-                if len(parameters) < self.positionals:
-                     return invocation
-                if len([p for p in parameters if p.default == inspect.Parameter.empty]) > self.positionals:
-                     return invocation
-                if not set([p.name for p in parameters][self.positionals:]).issubset(set(self.names)):
-                     return invocation
-        return None
+     def __validateInvocationList__(self):
+          for invocation in self.invocationList:
+               fullargs = inspect.getfullargspec(invocation)
+               args = fullargs.args
+               if fullargs.varargs or fullargs.varkw:
+                    continue
+               if any(args) and args[0] == "self":
+                    args.pop(0)
+               if len(args) < self.positionals:
+                    return invocation
+               if not fullargs.defaults == None and (len (args) - len(fullargs.defaults)) < self.positionals:
+                    return invocation
+               if not set(args[self.positionals:]).issubset(set(self.names)):
+                    return invocation
+          return None
                      
 
-    def __call__(self, *args, **kwargs):
-        rtn = None
-        if len(args) != self.positionals:
-             raise TypeError(f"Expected {self.positionals} positional arguments, received {len(args)}")
-        for kwarg in kwargs.keys():
-             if not kwarg in self.names:
-                  raise TypeError(f"Unexpected Keyword Argument :'{kwarg}'")          
-        for invocation in self.invocationList:
-            rtn = invocation(*args, **kwargs)
-        return rtn
+     def __call__(self, *args, **kwargs):
+          rtn = None
+          if len(args) < self.positionals:
+               raise TypeError(f"Expected {self.positionals} positional arguments, received {len(args)}")
+          for kwarg in kwargs.keys():
+               if not kwarg in self.names:
+                    raise TypeError(f"Unexpected Keyword Argument :'{kwarg}'")  
+          for invocation in self.invocationList:
+               rtn = invocation(*args, **kwargs)
+          return rtn
     
-    def __iadd__(self, other):
-        self.invocationList.append(other)
-        invalid = self.__validateInvocationList__()
-        if invalid:
-            raise InvalidInvocationException(invalid)
+     def __iadd__(self, other):
+          self.invocationList.append(other)
+          invalid = self.__validateInvocationList__()
+          if invalid:
+               raise InvalidInvocationException(invalid)
+          return self
         
-    def __isub__(self, other):
-        if other in self.invocationList:
-            self.invocationList.pop(other)
+     def __isub__(self, other):
+          if other in self.invocationList:
+               self.invocationList.pop(other)
+          return self
 
 class Transform(Delegate):
      def __init__(self, _invocationList=[], _carry=1, _positionals=0, _names=[]):
